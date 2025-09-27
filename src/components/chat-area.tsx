@@ -11,27 +11,35 @@ import { ChatMessage } from "@/lib/ai/contract-tools-schema";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
 import { borrowFunds } from "@/lib/ai/thirdweb-functions";
+import Swap from "./transaction-components/Swap";
+import { useSwap } from "@/contexts/SwapContext";
+
+const SwapTrigger = ({ onMount }: { onMount: () => void }) => {
+  useEffect(() => {
+    onMount();
+  }, [onMount]);
+
+  return <div>Swap interface opened</div>;
+};
 
 const ChatArea = () => {
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const account = useActiveAccount();
+  const { openSwap } = useSwap();
 
-  const { messages, status, sendMessage, addToolResult, error, stop } =
-    useChat<ChatMessage>({
+  const { messages, status, sendMessage, addToolResult } = useChat<ChatMessage>(
+    {
       transport: new DefaultChatTransport({
         api: "/api/chat",
       }),
       onToolCall: async ({ toolCall }) => {
         // Handle different tools
-        let result = "";
         const input = toolCall.input as any; // Type assertion for tool input
 
         switch (toolCall.toolName) {
           case "borrowFunds":
-            result = `Borrow request initiated for ${input.amount} USD`;
             const borrowRes = await borrowFunds({ amount: input.amount });
             addToolResult({
               tool: "borrowFunds",
@@ -42,22 +50,27 @@ const ChatArea = () => {
             break;
 
           case "lendFunds":
-            result = `Lending ${input.amount} USD to the protocol`;
+            // Handle lending logic here
             break;
 
           case "repayLoan":
-            result = `Repaying loan ${input.loanId} with amount ${input.amount} USD`;
+            // Handle repay loan logic here
             break;
 
           case "withdrawCollateral":
-            result = `Withdrawing ${input.amount} collateral from loan ${input.loanId}`;
+            // Handle withdraw collateral logic here
             break;
 
+          case "swapGeneral":
+            openSwap();
+
           default:
-            result = `Unknown tool: ${toolCall.toolName}`;
+            // Handle unknown tools
+            break;
         }
       },
-    });
+    }
+  );
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -101,7 +114,7 @@ const ChatArea = () => {
               <div
                 className={cn(
                   "p-4 max-w-4/5 rounded-2xl border-2",
-                  item.role === "assistant" ? "bg-primary" : "bg-background"
+                  item.role === "assistant" ? "bg-background" : "bg-primary"
                 )}
               >
                 {item.parts.map((part, idx) => {
@@ -140,6 +153,55 @@ const ChatArea = () => {
                           return (
                             <div key={`${item.id}`}>Txn Error detected</div>
                           );
+                        default:
+                          return null;
+                      }
+
+                    case "tool-swapGeneral":
+                      switch (part.state) {
+                        case "input-streaming":
+                          return (
+                            <div key={`${item.id}`}>
+                              Opening swap interface...
+                            </div>
+                          );
+                        case "input-available":
+                          return (
+                            <React.Fragment key={`${item.id}`}></React.Fragment>
+                          );
+
+                        case "output-error":
+                          return (
+                            <div key={`${item.id}`}>
+                              Failed to open swap interface
+                            </div>
+                          );
+                        default:
+                          return null;
+                      }
+
+                    case "tool-swapUsdcToPyUsd":
+                      switch (part.state) {
+                        case "input-streaming":
+                          return (
+                            <div key={`${item.id}`}>
+                              Processing USDC to pyUSD swap...
+                            </div>
+                          );
+                        case "input-available":
+                          return (
+                            <div key={`${item.id}`}>
+                              Swapping {part.input?.amount} USDC to pyUSD
+                            </div>
+                          );
+                        case "output-available":
+                          return (
+                            <div key={`${item.id}`}>
+                              Swap completed successfully
+                            </div>
+                          );
+                        case "output-error":
+                          return <div key={`${item.id}`}>Swap failed</div>;
                         default:
                           return null;
                       }

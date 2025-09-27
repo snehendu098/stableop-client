@@ -37,7 +37,8 @@ export const contractTools = {
   }),
 
   swapUsdcToPyUsd: tool({
-    description: "Swap USDC to pyUSD - optimized direct swap for USDC to PayPal USD conversion",
+    description:
+      "Swap USDC to pyUSD - optimized direct swap for USDC to PayPal USD conversion",
     inputSchema: z.object({
       amount: z.string().describe(
         `The amount of USDC to swap to pyUSD.
@@ -64,8 +65,10 @@ DECIMAL HANDLING:
   }),
 
   swapGeneral: tool({
-    description: "Open general swap interface for any asset to any other asset - triggers UI swap component when USDC to pyUSD direct swap is not applicable",
+    description:
+      "Open general swap interface for any asset to any other asset - triggers UI swap component when USDC to pyUSD direct swap is not applicable",
     inputSchema: z.object({}),
+    outputSchema: z.string(),
   }),
 };
 

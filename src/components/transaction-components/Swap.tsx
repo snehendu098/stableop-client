@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
+import TransactionLayout from "./Layout";
+import { SwapWidget } from "thirdweb/react";
+import { client } from "@/lib/thirdweb-client";
+import { useSwap } from "@/contexts/SwapContext";
 
 const Swap = () => {
+  const { isSwapOpen } = useSwap();
+
+  useEffect(() => {
+    console.log(isSwapOpen);
+  }, [isSwapOpen]);
+
+  if (!isSwapOpen) {
+    return null;
+  }
+
   return (
-    <div className="w-96 aspect-[6/7] bg-card rounded-2xl p-8 border">
-      <p className="text-2xl font-semibold mb-6">Swap</p>
-      <div className="flex flex-col space-y-4">
-        <div className="bg-background w-full">Hello</div>
-      </div>
-    </div>
+    <TransactionLayout>
+      <SwapWidget client={client} />
+    </TransactionLayout>
   );
 };
 
