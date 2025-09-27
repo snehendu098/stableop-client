@@ -1,9 +1,9 @@
-export const borrowRequest = async ({
+export const lendFunds = async ({
   address,
   amount,
 }: {
   address: string;
   amount: number;
 }) => {
-  return `Borrowed amount ${amount} at ${address}`;
+  return `Lend amount ${amount} at ${address}`;
 };
