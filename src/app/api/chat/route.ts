@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
 
   const result = streamText({
-    model: google("gemini-2.5-pro"),
+    model: google("gemini-2.0-flash"),
     messages: convertToModelMessages(messages),
     tools: contractTools,
     system: `You are a DeFi assistant that helps users interact with a borrowing and lending protocol.
@@ -16,10 +16,11 @@ export async function POST(req: Request) {
     - Borrow money: Use borrowFunds tool
     - Lend money: Use lendFunds tool
     - Repay loans: Use repayLoan tool
-    - Withdraw collateral: Use withdrawCollateral tool
+    - Deposit collateral: Use withdrawCollateral tool
+    - Swap some assets: Use the swapGeneral tool
 
     Always confirm the action details with the user before proceeding.
-    Be helpful and explain what each action does.`,
+    Be helpful and explain what each action does. Also you are being given multiple tools each for doing some specific kinds of tasks, make sure to properly use them`,
     stopWhen: stepCountIs(2),
   });
 

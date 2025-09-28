@@ -5,29 +5,18 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { useActiveAccount } from "thirdweb/react";
 import { useChat } from "@ai-sdk/react";
 import { ChatMessage } from "@/lib/ai/contract-tools-schema";
 import { DefaultChatTransport } from "ai";
 import ReactMarkdown from "react-markdown";
-import { borrowFunds } from "@/lib/ai/thirdweb-functions";
-import Swap from "./transaction-components/Swap";
-import { useSwap } from "@/contexts/SwapContext";
-
-const SwapTrigger = ({ onMount }: { onMount: () => void }) => {
-  useEffect(() => {
-    onMount();
-  }, [onMount]);
-
-  return <div>Swap interface opened</div>;
-};
+import { useModal } from "@/contexts/ModalContext";
 
 const ChatArea = () => {
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { openSwap } = useSwap();
+  const { openModal } = useModal();
 
   const { messages, status, sendMessage, addToolResult } = useChat<ChatMessage>(
     {
@@ -40,17 +29,15 @@ const ChatArea = () => {
 
         switch (toolCall.toolName) {
           case "borrowFunds":
-            const borrowRes = await borrowFunds({ amount: input.amount });
-            addToolResult({
-              tool: "borrowFunds",
-              state: "output-available",
-              output: { text: borrowRes },
-              toolCallId: toolCall.toolCallId,
-            });
+            openModal("borrow", { amount: input.amount });
             break;
 
           case "lendFunds":
-            // Handle lending logic here
+            openModal("lend", { amount: input.amount });
+            break;
+
+          case "depositCollateral":
+            openModal("depositCollateral", { amount: input.amount });
             break;
 
           case "repayLoan":
@@ -62,7 +49,16 @@ const ChatArea = () => {
             break;
 
           case "swapGeneral":
-            openSwap();
+            console.log("swapGeneral tool called");
+            openModal("swap");
+            break;
+
+          case "sendpyUSD":
+            openModal("send", {
+              amount: input?.amount,
+              address: input?.address,
+            });
+            break;
 
           default:
             // Handle unknown tools
@@ -100,14 +96,14 @@ const ChatArea = () => {
   const isLoading = status === "streaming" || status === "submitted";
 
   return (
-    <div className="col-span-2 rounded-2xl bg-card flex p-6 flex-col">
+    <div className="col-span-2 rounded-3xl bg-card flex p-6 flex-col">
       <ScrollArea className="h-[80%] max-h-[65vh] pr-4" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.map((item) => (
             <div
               key={item.id}
               className={cn(
-                "w-full flex",
+                "w-full flex wrap-break-word",
                 item.role === "assistant" ? "justify-start" : "justify-end"
               )}
             >
@@ -167,9 +163,12 @@ const ChatArea = () => {
                           );
                         case "input-available":
                           return (
-                            <React.Fragment key={`${item.id}`}></React.Fragment>
+                            <div key={`${item.id}`}>Swap interface opened</div>
                           );
-
+                        case "output-available":
+                          return (
+                            <div key={`${item.id}`}>Swap interface ready</div>
+                          );
                         case "output-error":
                           return (
                             <div key={`${item.id}`}>
@@ -180,31 +179,36 @@ const ChatArea = () => {
                           return null;
                       }
 
-                    case "tool-swapUsdcToPyUsd":
-                      switch (part.state) {
-                        case "input-streaming":
-                          return (
-                            <div key={`${item.id}`}>
-                              Processing USDC to pyUSD swap...
-                            </div>
-                          );
-                        case "input-available":
-                          return (
-                            <div key={`${item.id}`}>
-                              Swapping {part.input?.amount} USDC to pyUSD
-                            </div>
-                          );
-                        case "output-available":
-                          return (
-                            <div key={`${item.id}`}>
-                              Swap completed successfully
-                            </div>
-                          );
-                        case "output-error":
-                          return <div key={`${item.id}`}>Swap failed</div>;
-                        default:
-                          return null;
-                      }
+                    // case "tool-sendpyUSD":
+                    //   switch (part.state) {
+                    //     case "input-streaming":
+                    //       return (
+                    //         <div key={`${item.id}`}>
+                    //           Preparing pyUSD transfer...
+                    //         </div>
+                    //       );
+                    //     case "input-available":
+                    //       return (
+                    //         <div key={`${item.id}`}>
+                    //           Preparing transfer for {part.input?.amount} pyUSD
+                    //           to {part.input?.address}...
+                    //         </div>
+                    //       );
+                    //     case "output-available":
+                    //       return (
+                    //         <div key={`${item.id}`}>
+                    //           Transfer interface opened
+                    //         </div>
+                    //       );
+                    //     case "output-error":
+                    //       return (
+                    //         <div key={`${item.id}`}>
+                    //           Failed to open transfer interface
+                    //         </div>
+                    //       );
+                    //     default:
+                    //       return null;
+                    //   }
 
                     default:
                       return null;

@@ -13,6 +13,7 @@
     "@ai-sdk/react": "^2.0.56",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.3",
+    "@thirdweb-dev/ai-sdk-provider": "^0.1.3",
     "ai": "^5.0.56",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

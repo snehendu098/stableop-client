@@ -1,14 +1,14 @@
 import React from "react";
-import { useSwap } from "@/contexts/SwapContext";
+import { useModal } from "@/contexts/ModalContext";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
 
 const TransactionLayout = ({ children }: { children: React.ReactNode }) => {
-  const { closeSwap } = useSwap();
+  const { closeModal } = useModal();
 
   const handleClose = () => {
     console.log("Close button clicked");
-    closeSwap();
+    closeModal();
   };
 
   return (
